@@ -211,7 +211,7 @@ h = 4
 
 class Matrix {
 public:
-  Matrix(int m, int n, char fill = '.') 
+  Matrix(int m, int n) 
   : m_rows(m)
   , m_cols(n) {
   	
@@ -224,7 +224,7 @@ public:
     	
     	for (size_t j = 0; j < n; j++) {
     		
-    	  row.push_back(fill);
+    	  row.push_back('.');
     	}
     	
     	m_data.push_back(row);
@@ -255,8 +255,8 @@ private:
   
 };
 
-Matrix create_matrix(int m, int n, char fill = '.') {
-	return Matrix(m, n, '.');
+Matrix create_matrix(int m, int n) {
+	return Matrix(m, n);
 }
 
 // ученик может смотреть код ниже ---
@@ -287,7 +287,7 @@ void  print(const Matrix& matrix) {
 int main() {
 	
 	Matrix m1 = create_matrix(4, 4);
-	Matrix m2 = fill_index(m1, m1.rows() - 1, m2.cols() - 1);
+	Matrix m2 = fill_index(m1, m1.rows() - 1, m1.cols() - 1);
 	print(m2);
 	
 	return 0;
