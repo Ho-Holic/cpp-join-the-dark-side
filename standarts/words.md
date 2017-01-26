@@ -18,8 +18,12 @@
 || swim | sink | tree data structures jargon or coroutines|
 |D| expand | contract | used in photoshop selection|
 
+---
+
 **Type**:
 
 F - Fixed. You can't change words here. It is not a subject for discussion.
-H - Help needed! Don't have any apropriate word here
+
+H - Help needed! Don't have any apropriate word here.
+
 D - Under discussion. Can we do better?
