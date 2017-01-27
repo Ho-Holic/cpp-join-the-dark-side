@@ -19,6 +19,9 @@
 |D| expand | contract | used in photoshop selection|
 | | produce | consume ||
 | | resume | suspend | suspend is better when pause because of play/pause/stop|
+|H| add | ??? | |
+|D| insert | remove | |
+| | front | back | |
 
 ---
 
