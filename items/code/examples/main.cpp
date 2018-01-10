@@ -67,7 +67,7 @@ struct LinkedTypes<N, C, U1, Us...> : LinkedTypes<N, C, Us...> {
     std::map<U1, size_t> m_layer;
 };
 
-template <size_t N, typename... Ts>
+template <typename... Ts, size_t N>
 auto makeLinkedTypes(const std::tuple<Ts...>(&items)[N]) -> LinkedTypes<N, std::tuple<Ts...>, Ts...> {
     LinkedTypes<N, std::tuple<Ts...>, Ts...> d ( items );
     return d;
@@ -91,12 +91,13 @@ bool operator< (const Point& left, const Point& right) {
 int main() {
 
 
-    auto map = makeLinkedTypes<2, std::string, int, Point>({
+    auto map = makeLinkedTypes<std::string, int, Point>({
       {"cat", 42, {42, 12}},
       {"dog", 12, {1, 1}},
+      {"parrot", 13, {8, 16}},
     });
 
-    Point p = map(std::string("cat")).get<Point>();
+    Point p = map(std::string("parrot")).get<Point>();
 
     std::cout << "result: " <<  p.x << "," << p.y << std::endl;
 
