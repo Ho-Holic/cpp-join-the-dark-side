@@ -27,6 +27,7 @@ public:
     Shadow& operator=(T&& t){
         value = std::forward<T>(t);
         initialized = true;
+        return *this;
     }
 
 

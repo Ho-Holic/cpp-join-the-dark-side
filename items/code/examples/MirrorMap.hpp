@@ -8,6 +8,19 @@
 
 #define Z_ASSERT(x) assert(x)
 
+//#error "add support for synonims"
+// NORMAL:
+//
+//    makeMirrorMap(
+//        { Color::RED, "Red" }
+//    );
+//
+// SYNONIM:
+//
+//    makeMirrorMap(
+//        { Synonim(Color::RED, HSLColor::Red), Synonim("Red", "red", "r", "R") }
+//    );
+
 template <typename Left, typename Right, size_t N>
 class MirrorMap
 {

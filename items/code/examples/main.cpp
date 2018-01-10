@@ -1,101 +1,104 @@
 #include <iostream>
-#include "MirrorMap.hpp"
-#include "EnumFlattener.hpp"
-#include "Shadow.hpp"
+#include <tuple>
+#include <map>
+#include <cassert>
 
 
-void testMirrorMap()
-{
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+template <size_t N, typename... Ts>
+struct LinkedTypes  {
+    //
+};
 
-    enum class Color
-    {
-        RED,
-        GREEN,
-        BLUE
-    };
+//template <>
+//struct LinkedTypes<0> {
+//    //
+//};
 
-    auto map = makeMirrorMap<Color, std::string>({
-                                                     { Color::RED, "color_red" },
-                                                     { Color::GREEN, "color_green" },
-                                                     { Color::BLUE, "color_blue" },
-                                                 });
 
-    std::cout << static_cast<int>(map("color_blue", Color::GREEN)) << std::endl;
-}
-
-void testEnumFlattener()
-{
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-
-    enum class Color { RED, GREEN, BLUE, ENUM_END };
-    enum class Size { SMALL, MEDIUM, LARGE, ENUM_END };
-    enum class Shape { RECT, ROUND, ENUM_END };
-
-    auto print = [](const std::string& data) {
-        std::cout << data << std::endl;
-    };
-    FlattenEnums<Color, Size, Shape> flattenEnums;
-    auto input = flattenEnums(Color::RED, Size::MEDIUM, Shape::RECT);
-    switch (input) {
-    case flattenEnums(Color::RED, Size::SMALL, Shape::RECT): print("rs[]"); break;
-    case flattenEnums(Color::RED, Size::MEDIUM, Shape::RECT): print("rm[]"); break;
-    case flattenEnums(Color::RED, Size::LARGE, Shape::RECT): print("rl[]"); break;
-    case flattenEnums(Color::RED, Size::SMALL, Shape::ROUND): print("rs()"); break;
-    case flattenEnums(Color::RED, Size::MEDIUM, Shape::ROUND): print("rm()"); break;
-    case flattenEnums(Color::RED, Size::LARGE, Shape::ROUND): print("rl()"); break;
-
-    case flattenEnums(Color::GREEN, Size::SMALL, Shape::RECT): print("gs[]"); break;
-    case flattenEnums(Color::GREEN, Size::MEDIUM, Shape::RECT): print("gm[]"); break;
-    case flattenEnums(Color::GREEN, Size::LARGE, Shape::RECT): print("gl[]"); break;
-    case flattenEnums(Color::GREEN, Size::SMALL, Shape::ROUND): print("gs()"); break;
-    case flattenEnums(Color::GREEN, Size::MEDIUM, Shape::ROUND): print("gm()"); break;
-    case flattenEnums(Color::GREEN, Size::LARGE, Shape::ROUND): print("gl()"); break;
-
-    case flattenEnums(Color::BLUE, Size::SMALL, Shape::RECT): print("bs[]"); break;
-    case flattenEnums(Color::BLUE, Size::MEDIUM, Shape::RECT): print("bm[]"); break;
-    case flattenEnums(Color::BLUE, Size::LARGE, Shape::RECT): print("bl[]"); break;
-    case flattenEnums(Color::BLUE, Size::SMALL, Shape::ROUND): print("bs()"); break;
-    case flattenEnums(Color::BLUE, Size::MEDIUM, Shape::ROUND): print("bm()"); break;
-    case flattenEnums(Color::BLUE, Size::LARGE, Shape::ROUND): print("bl()"); break;
+template <size_t N, typename C>
+struct LinkedTypes<N, C> {
+    LinkedTypes(const C (&c)[N])  {
+        for (size_t i = 0; i < N; ++i) {
+            m_storage[i] = c[i];
+        }
     }
+    C m_storage[N];
+};
+
+template <typename C>
+struct LinkedTypesGetter  {
+    LinkedTypesGetter(const C& data) : m_data(data) {}
+
+    template <typename T>
+    T get() {
+        return std::get<T>(m_data);
+    }
+
+    C m_data;
+};
+
+//template <typename T, typename... Ts>
+//struct LinkedTypesGetter<T, Ts...> : LinkedTypesGetter<Ts...> {
+//    LinkedTypesGetter(std::tuple<T, Ts...> data) : LinkedTypesGetter<Ts...>(data) {}
+//    operator T() {
+//        return std::get<T>(m_data);
+//    }
+//};
+
+template <size_t N, typename C, typename U1, typename... Us>
+struct LinkedTypes<N, C, U1, Us...> : LinkedTypes<N, C, Us...> {
+
+    using Base = LinkedTypes<N, C, Us...>;
+    using Base::m_storage;
+
+    LinkedTypes(const C (&c)[N]) : LinkedTypes<N, C, Us...>(c) {
+        for (size_t i = 0; i < N; ++i) {
+            m_layer.insert(std::make_pair(std::get<U1>(c[i]), i));
+        }
+    }
+
+    LinkedTypesGetter<C> operator()(const U1& key) {
+        auto found = m_layer.find(key);
+        assert(found != m_layer.end());
+
+        auto tupleRow = m_storage[found->second];
+        return LinkedTypesGetter<C>(tupleRow);
+    }
+    std::map<U1, size_t> m_layer;
+};
+
+template <size_t N, typename... Ts>
+auto makeLinkedTypes(const std::tuple<Ts...>(&items)[N]) -> LinkedTypes<N, std::tuple<Ts...>, Ts...> {
+    LinkedTypes<N, std::tuple<Ts...>, Ts...> d ( items );
+    return d;
 }
 
-void testShadow() {
+// client
 
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+struct Point {
+    //Point(int x, int y) : x(x), y(y) {}
+    int x;
+    int y;
+};
 
-    struct Currency { int i; };
-
-    Shadow<std::string, int, Currency> price;
-
-    price = "10";
-    price = 11;
-    price = Currency{12};
-
-    std::cout << static_cast<std::string>(price) << std::endl;
-    std::cout << static_cast<int>(price) << std::endl;
-    std::cout << static_cast<Currency>(price).i << std::endl;
+bool operator< (const Point& left, const Point& right) {
+    if (left.x == right.x) {
+        return left.y < right.y;
+    }
+    return left.x < right.x;
 }
 
 int main() {
-    enum class Color { RED, GREEN, BLUE, ENUM_END };
 
-    auto print = [](const std::string& data) {
-        std::cout << data << std::endl;
-    };
 
-    FlattenEnums<Color, bool> flattenEnums;
+    auto map = makeLinkedTypes<2, std::string, int, Point>({
+      {"cat", 42, {42, 12}},
+      {"dog", 12, {1, 1}},
+    });
 
-    auto input = flattenEnums(Color::GREEN, true);
-    switch (input) {
-    case flattenEnums(Color::RED, true): print("red true"); break;
-    case flattenEnums(Color::RED, false): print("red false"); break;
-    case flattenEnums(Color::GREEN, true): print("green true"); break;
-    case flattenEnums(Color::GREEN, false): print("green false"); break;
-    case flattenEnums(Color::BLUE, true): print("blue true"); break;
-    case flattenEnums(Color::BLUE, false): print("blue false"); break;
-    }
+    Point p = map(std::string("cat")).get<Point>();
+
+    std::cout << "result: " <<  p.x << "," << p.y << std::endl;
 
     return 0;
 }
