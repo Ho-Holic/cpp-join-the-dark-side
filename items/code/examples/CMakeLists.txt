@@ -10,8 +10,8 @@ include_directories("examples")
 
 add_executable(${PROJECT_NAME} "main.cpp")
 
-add_executable("enum_flattener" "EnumFlattener.hpp" "TestEnumFlattener.cpp")
-add_executable("shadow" "Shadow.hpp" "TestShadow.cpp")
-add_executable("previous_value" "PreviousValue.hpp" "TestPreviousValue.cpp")
-add_executable("mirror_map" "MirrorMap.hpp" "TestMirrorMap.cpp")
+#add_executable("enum_flattener" "EnumFlattener.hpp" "TestEnumFlattener.cpp")
+#add_executable("shadow" "Shadow.hpp" "TestShadow.cpp")
+#add_executable("previous_value" "PreviousValue.hpp" "TestPreviousValue.cpp")
+#add_executable("mirror_map" "MirrorMap.hpp" "TestMirrorMap.cpp")
 #add_executable("??" "??.hpp" "Test.cpp")

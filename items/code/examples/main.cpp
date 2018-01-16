@@ -4,29 +4,13 @@
 #include <cassert>
 
 
-template <size_t N, typename... Ts>
-struct LinkedTypes  {
-    //
-};
 
-//template <>
-//struct LinkedTypes<0> {
-//    //
-//};
-
-
-template <size_t N, typename C>
-struct LinkedTypes<N, C> {
-    LinkedTypes(const C (&c)[N])  {
-        for (size_t i = 0; i < N; ++i) {
-            m_storage[i] = c[i];
-        }
-    }
-    C m_storage[N];
+template <typename... Ts>
+struct LinkedTypesGetter  {
 };
 
 template <typename C>
-struct LinkedTypesGetter  {
+struct LinkedTypesGetter<C>  {
     LinkedTypesGetter(const C& data) : m_data(data) {}
 
     template <typename T>
@@ -37,46 +21,76 @@ struct LinkedTypesGetter  {
     C m_data;
 };
 
-//template <typename T, typename... Ts>
-//struct LinkedTypesGetter<T, Ts...> : LinkedTypesGetter<Ts...> {
-//    LinkedTypesGetter(std::tuple<T, Ts...> data) : LinkedTypesGetter<Ts...>(data) {}
-//    operator T() {
-//        return std::get<T>(m_data);
-//    }
-//};
 
-template <size_t N, typename C, typename U1, typename... Us>
-struct LinkedTypes<N, C, U1, Us...> : LinkedTypes<N, C, Us...> {
+template <typename C, typename U1, typename... Us>
+struct LinkedTypesGetter<C, U1, Us...> : LinkedTypesGetter<C, Us...>  {
 
-    using Base = LinkedTypes<N, C, Us...>;
+    using Base = LinkedTypesGetter<C, Us...>;
+    using Base::m_data;
+    //using Base::operator Us...; // c++17
+
+    LinkedTypesGetter(const C& data) : LinkedTypesGetter<C, Us...>(data) {}
+
+    operator U1() {
+        return std::get<U1>(m_data);
+    }
+};
+
+template <size_t N, typename... Ts>
+struct LinkedTypes  {
+    //
+};
+
+template <size_t N, typename C, typename G>
+struct LinkedTypes<N, C, G> {
+    LinkedTypes(const C (&c)[N]) {
+        for (size_t i = 0; i < N; ++i) {
+            m_storage[i] = c[i];
+        }
+    }
+
+    void operator()() {
+        // to make 'using Base::operator();' work
+    }
+
+    C m_storage[N];
+};
+
+template <size_t N, typename C, typename G, typename U1, typename... Us>
+struct LinkedTypes<N, C, G, U1, Us...> : LinkedTypes<N, C, G, Us...> {
+
+    using Base = LinkedTypes<N, C, G, Us...>;
     using Base::m_storage;
+    using Base::operator();
 
-    LinkedTypes(const C (&c)[N]) : LinkedTypes<N, C, Us...>(c) {
+    LinkedTypes(const C (&c)[N]) : LinkedTypes<N, C, G, Us...>(c) {
         for (size_t i = 0; i < N; ++i) {
             m_layer.insert(std::make_pair(std::get<U1>(c[i]), i));
         }
     }
 
-    LinkedTypesGetter<C> operator()(const U1& key) {
+    G operator()(const U1& key) {
         auto found = m_layer.find(key);
         assert(found != m_layer.end());
 
         auto tupleRow = m_storage[found->second];
-        return LinkedTypesGetter<C>(tupleRow);
+        return G(tupleRow);
     }
     std::map<U1, size_t> m_layer;
 };
 
 template <typename... Ts, size_t N>
-auto makeLinkedTypes(const std::tuple<Ts...>(&items)[N]) -> LinkedTypes<N, std::tuple<Ts...>, Ts...> {
-    LinkedTypes<N, std::tuple<Ts...>, Ts...> d ( items );
+auto makeLinkedTypes(const std::tuple<Ts...>(&items)[N])
+-> LinkedTypes<N, std::tuple<Ts...>, LinkedTypesGetter<std::tuple<Ts...>, Ts...>, Ts...> {
+    LinkedTypes<N, std::tuple<Ts...>, LinkedTypesGetter<std::tuple<Ts...>, Ts...>, Ts...> d ( items );
     return d;
 }
 
 // client
 
 struct Point {
-    //Point(int x, int y) : x(x), y(y) {}
+    Point() : x(0), y(0) {}
+    Point(int x, int y) : x(x), y(y) {}
     int x;
     int y;
 };
@@ -91,15 +105,48 @@ bool operator< (const Point& left, const Point& right) {
 int main() {
 
 
-    auto map = makeLinkedTypes<std::string, int, Point>({
+    auto data = makeLinkedTypes<std::string, int, Point>({
       {"cat", 42, {42, 12}},
       {"dog", 12, {1, 1}},
       {"parrot", 13, {8, 16}},
     });
 
-    Point p = map(std::string("parrot")).get<Point>();
+    {
+        auto g = data(Point(42, 12));
+        std::string s = g;
+        int i = g;
+        Point p = g;
 
-    std::cout << "result: " <<  p.x << "," << p.y << std::endl;
+        std::cout << ">Cat" << std::endl;
+        std::cout << "String: " <<  s << std::endl;
+        std::cout << "Integer: " <<  i << std::endl;
+        std::cout << "Point: " <<  p.x << "," << p.y << std::endl;
+    }
+
+    {
+        auto g = data(12);
+        std::string s = g;
+        int i = g;
+        Point p = g;
+
+        std::cout << ">Dog" << std::endl;
+        std::cout << "String: " <<  s << std::endl;
+        std::cout << "Integer: " <<  i << std::endl;
+        std::cout << "Point: " <<  p.x << "," << p.y << std::endl;
+    }
+
+    {
+        auto g = data("parrot");
+        std::string s = g;
+        int i = g;
+        Point p = g;
+
+        std::cout << ">Parrot" << std::endl;
+        std::cout << "String: " <<  s << std::endl;
+        std::cout << "Integer: " <<  i << std::endl;
+        std::cout << "Point: " <<  p.x << "," << p.y << std::endl;
+    }
+
 
     return 0;
 }
