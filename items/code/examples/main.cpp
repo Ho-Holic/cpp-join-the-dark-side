@@ -49,7 +49,7 @@ struct DimensionMapResult<C, U1, Us...> : DimensionMapResult<C, Us...>  {
     }
 };
 
-// trait for packing template arguments
+// trait with useful types
 template <size_t N, typename... Ts>
 struct DimensionTrait
 {
@@ -58,10 +58,49 @@ struct DimensionTrait
     using result_type = DimensionMapResult<tuple_type, Ts...>;
 };
 
-// generate getter functions
-template <typename DT, typename U1, bool B>
-struct DimensionGetFunctions {
-    DimensionGetFunctions(const typename DT::tuple_type (&c)[DT::dimensions]) : m_storageRef(c) {
+// main template
+template <bool B, typename... Ts>
+struct DimensionMap  {
+    //
+};
+
+template <bool B, typename DT>
+struct DimensionMap<B, DT> {
+    DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions]) {
+        for (size_t i = 0; i < DT::dimensions; ++i) {
+            m_storage[i] = c[i];
+        }
+    }
+
+    void operator()() {
+        // to make 'using Base::operator();' work
+    }
+
+    typename DT::tuple_type m_storage[DT::dimensions];
+};
+
+template <bool B, typename DT, typename U1, typename... Us>
+struct DimensionMap<B, DT, U1, Us...>
+:   DimensionMap<has_operator_less<U1>::value, DT, U1, U1, Us...> {
+
+   using Base = DimensionMap<has_operator_less<U1>::value, DT, U1, U1, Us...>;
+   using Base::m_storage;
+   using Base::operator();
+
+   DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions]) : DimensionMap<has_operator_less<U1>::value, DT, U1, U1, Us...>(c) {
+       //
+   }
+};
+
+// With Less Operator Version
+template <bool B, typename DT, typename U1, typename... Us>
+struct DimensionMap<B, DT, U1, U1, Us...> : DimensionMap<B, DT, Us...> {
+
+    using Base = DimensionMap<B, DT, Us...>;
+    using Base::m_storage;
+    using Base::operator();
+
+    DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions]) : DimensionMap<B, DT, Us...>(c) {
         for (size_t i = 0; i < DT::dimensions; ++i) {
             m_layer.insert(std::make_pair(std::get<U1>(c[i]), i));
         }
@@ -71,85 +110,31 @@ struct DimensionGetFunctions {
         auto found = m_layer.find(key);
         assert(found != m_layer.end());
 
-        auto tupleRow = m_storageRef[found->second];
+        auto tupleRow = m_storage[found->second];
         return typename DT::result_type(tupleRow);
     }
 
     std::map<U1, size_t> m_layer;
-    const typename DT::tuple_type (&m_storageRef)[DT::dimensions];
 };
 
-template <typename DT, typename U1>
-struct DimensionGetFunctions<DT, U1, false> {
-    void operator()() {
-        // to make 'using Base::operator();' work
-    }
-};
-
-// main container
-template <typename... Ts>
-struct DimensionMap  {
-    //
-};
-
-template <typename DT>
-struct DimensionMap<DT> {
-    DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions]) {
-        for (size_t i = 0; i < DT::dimensions; ++i) {
-            m_storage[i] = c[i];
-        }
-    }
-
-    typename DT::tuple_type m_storage[DT::dimensions];
-};
-
-// version with getter
+// Without Less operator Version
 template <typename DT, typename U1, typename... Us>
-struct DimensionMap<DT, U1, Us...>
-:   DimensionMap<DT, Us...>,
-    DimensionGetFunctions<DT, U1, has_operator_less<U1>::value> {
+struct DimensionMap<false, DT, U1, U1, Us...> : DimensionMap<false, DT, Us...> {
 
-    using Base = DimensionMap<DT, Us...>;
-    using Base2 = DimensionGetFunctions<DT, U1, has_operator_less<U1>::value>;
-
+    using Base = DimensionMap<false, DT, Us...>;
     using Base::m_storage;
-    using Base2::operator();
+    using Base::operator();
 
-    DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions])
-    :   DimensionMap<DT, Us...>(c)
-    ,   DimensionGetFunctions<DT, U1, has_operator_less<U1>::value>(m_storage) {
-//        for (size_t i = 0; i < DT::dimensions; ++i) {
-//            m_layer.insert(std::make_pair(std::get<U1>(c[i]), i));
-//        }
+    DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions]) : DimensionMap<false, DT, Us...>(c) {
+        //
     }
-
-//    typename DT::result_type operator()(const U1& key) {
-//        auto found = m_layer.find(key);
-//        assert(found != m_layer.end());
-
-//        auto tupleRow = m_storage[found->second];
-//        return typename DT::result_type(tupleRow);
-//    }
-
-//    std::map<U1, size_t> m_layer;
+    void foo(){}
 };
 
-//template <typename DT, typename U1, typename... Us>
-//struct DimensionMap<DT, void, Us...>
-//:   DimensionMap<DT, Us...> {
-
-//    using Base = DimensionMap<DT, Us...>;
-//    using Base::m_storage;
-//    using Base::operator();
-
-//    DimensionMap(const C (&c)[DT::dimensions]) : DimensionMap<DT, Us...>(c) {
-//        //
-//    }
-//};
-
+// client function
 template <typename... Ts, size_t N>
-auto makeDimensionMap(const std::tuple<Ts...>(&items)[N]) -> DimensionMap<DimensionTrait<N, Ts...>, Ts...> {
-    DimensionMap<DimensionTrait<N, Ts...>, Ts...> d ( items );
+auto makeDimensionMap(const std::tuple<Ts...>(&items)[N]) -> DimensionMap<false, DimensionTrait<N, Ts...>, Ts...> {
+    DimensionMap<false, DimensionTrait<N, Ts...>, Ts...> d ( items );
     return d;
 }
 
@@ -164,12 +149,12 @@ struct Point {
     int y;
 };
 
-bool operator< (const Point& left, const Point& right) {
-    if (left.x == right.x) {
-        return left.y < right.y;
-    }
-    return left.x < right.x;
-}
+// bool operator< (const Point& left, const Point& right) {
+//     if (left.x == right.x) {
+//         return left.y < right.y;
+//     }
+//     return left.x < right.x;
+// }
 
 int main() {
 
@@ -180,17 +165,17 @@ int main() {
       {"parrot", 13, {8, 16}},
     });
 
-//    {
-//        auto g = data(Point(42, 12));
-//        std::string s = g;
-//        int i = g;
-//        Point p = g;
+   //{
+   //    auto g = data(Point(42, 12));
+   //    std::string s = g;
+   //    int i = g;
+   //    Point p = g;
 
-//        std::cout << ">Cat" << std::endl;
-//        std::cout << "String: " <<  s << std::endl;
-//        std::cout << "Integer: " <<  i << std::endl;
-//        std::cout << "Point: " <<  p.x << "," << p.y << std::endl;
-//    }
+   //    std::cout << ">Cat" << std::endl;
+   //    std::cout << "String: " <<  s << std::endl;
+   //    std::cout << "Integer: " <<  i << std::endl;
+   //    std::cout << "Point: " <<  p.x << "," << p.y << std::endl;
+   //}
 
     {
         auto g = data(12);
