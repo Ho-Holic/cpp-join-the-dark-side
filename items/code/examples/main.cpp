@@ -3,6 +3,20 @@
 #include <map>
 #include <cassert>
 
+// check for less operator
+template<class T, class EqualTo>
+struct has_operator_less_detail
+{
+    template<class U, class V>
+    static auto test(U*) -> decltype(std::declval<U>() < std::declval<V>());
+    template<typename, typename>
+    static auto test(...) -> std::false_type;
+
+    using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+};
+
+template<class T, class EqualTo = T>
+struct has_operator_less : has_operator_less_detail<T, EqualTo>::type {};
 
 // proxy for retrieving result
 template <typename... Ts>
@@ -35,13 +49,41 @@ struct DimensionMapResult<C, U1, Us...> : DimensionMapResult<C, Us...>  {
     }
 };
 
-// trait
+// trait for packing template arguments
 template <size_t N, typename... Ts>
 struct DimensionTrait
 {
     enum : size_t { dimensions = N };
     using tuple_type = std::tuple<Ts...>;
     using result_type = DimensionMapResult<tuple_type, Ts...>;
+};
+
+// generate getter functions
+template <typename DT, typename U1, bool B>
+struct DimensionGetFunctions {
+    DimensionGetFunctions(const typename DT::tuple_type (&c)[DT::dimensions]) : m_storageRef(c) {
+        for (size_t i = 0; i < DT::dimensions; ++i) {
+            m_layer.insert(std::make_pair(std::get<U1>(c[i]), i));
+        }
+    }
+
+    typename DT::result_type operator()(const U1& key) {
+        auto found = m_layer.find(key);
+        assert(found != m_layer.end());
+
+        auto tupleRow = m_storageRef[found->second];
+        return typename DT::result_type(tupleRow);
+    }
+
+    std::map<U1, size_t> m_layer;
+    const typename DT::tuple_type (&m_storageRef)[DT::dimensions];
+};
+
+template <typename DT, typename U1>
+struct DimensionGetFunctions<DT, U1, false> {
+    void operator()() {
+        // to make 'using Base::operator();' work
+    }
 };
 
 // main container
@@ -58,68 +100,38 @@ struct DimensionMap<DT> {
         }
     }
 
-    void operator()() {
-        // to make 'using Base::operator();' work
-    }
-
     typename DT::tuple_type m_storage[DT::dimensions];
-};
-
-// version with skip
-
-template<class T, class EqualTo>
-struct has_operator_less_detail
-{
-    template<class U, class V>
-    static auto test(U*) -> decltype(std::declval<U>() < std::declval<V>());
-    template<typename, typename>
-    static auto test(...) -> std::false_type;
-
-    using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-};
-
-template<class T, class EqualTo = T>
-struct has_operator_less : has_operator_less_detail<T, EqualTo>::type {};
-
-template <typename T, bool>
-struct Chooser {
-    using value = void;
-};
-
-template <typename T>
-struct Chooser<T, true> {
-    using value = T;
 };
 
 // version with getter
 template <typename DT, typename U1, typename... Us>
-struct DimensionMap<DT, U1, Us...> : DimensionMap<DT, Us...> {
+struct DimensionMap<DT, U1, Us...>
+:   DimensionMap<DT, Us...>,
+    DimensionGetFunctions<DT, U1, has_operator_less<U1>::value> {
 
     using Base = DimensionMap<DT, Us...>;
+    using Base2 = DimensionGetFunctions<DT, U1, has_operator_less<U1>::value>;
+
     using Base::m_storage;
-    using Base::operator();
+    using Base2::operator();
 
-    DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions]) : DimensionMap<DT, Us...>(c) {
-        for (size_t i = 0; i < DT::dimensions; ++i) {
-            m_layer.insert(std::make_pair(std::get<U1>(c[i]), i));
-        }
+    DimensionMap(const typename DT::tuple_type (&c)[DT::dimensions])
+    :   DimensionMap<DT, Us...>(c)
+    ,   DimensionGetFunctions<DT, U1, has_operator_less<U1>::value>(m_storage) {
+//        for (size_t i = 0; i < DT::dimensions; ++i) {
+//            m_layer.insert(std::make_pair(std::get<U1>(c[i]), i));
+//        }
     }
 
-    typename DT::result_type operator()(const U1& key) {
-        auto found = m_layer.find(key);
-        assert(found != m_layer.end());
+//    typename DT::result_type operator()(const U1& key) {
+//        auto found = m_layer.find(key);
+//        assert(found != m_layer.end());
 
-        auto tupleRow = m_storage[found->second];
-        return typename DT::result_type(tupleRow);
-    }
+//        auto tupleRow = m_storage[found->second];
+//        return typename DT::result_type(tupleRow);
+//    }
 
-    template <typename Any>
-    typename DT::result_type operator()(const U1& key, const Any& fallback) {
-        auto found = m_layer.find(key);
-        return found != m_layer.end() ? m_storage[found->second] : G(fallback);
-    }
-
-    std::map<U1, size_t> m_layer;
+//    std::map<U1, size_t> m_layer;
 };
 
 //template <typename DT, typename U1, typename... Us>
