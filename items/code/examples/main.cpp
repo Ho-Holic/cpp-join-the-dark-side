@@ -113,6 +113,12 @@ struct DimensionMap<B, DT, U1, U1, Us...> : DimensionMap<B, DT, Us...> {
         auto tupleRow = m_storage[found->second];
         return typename DT::result_type(tupleRow);
     }
+    
+    template <typename Any>
+    Any operator()(const U1& key, const Any& fallback) {
+        auto found = m_layer.find(key);
+        return found != m_layer.end() ? std::get<Any>(m_storage[found->second]) : fallback;
+    }
 
     std::map<U1, size_t> m_layer;
 };
@@ -187,6 +193,7 @@ int main() {
         std::cout << "String: " <<  s << std::endl;
         std::cout << "Integer: " <<  i << std::endl;
         std::cout << "Point: " <<  p.x << "," << p.y << std::endl;
+        std::cout << "Bad search: " <<  data(14, std::string("ball")) << std::endl;
     }
 
     {
