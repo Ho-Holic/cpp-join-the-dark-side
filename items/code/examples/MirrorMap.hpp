@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <utility>
 #include <map>
+#include <vector>
 #include <cassert>
 
 #define Z_ASSERT(x) assert(x)
@@ -53,6 +54,30 @@ public:
 
     Right operator()(const Left& key,const Right& fallback) {
         return m_directAccess.find(key) != m_directAccess.end() ? m_directAccess[key] : fallback;
+    }
+
+    //
+    // static allSkillTypes = cache.keysAs<SkillType, std::vector<SkillType>>();
+    //
+
+    template <typename T, typename C = std::vector<T>>
+    C keysAs(typename std::enable_if<std::is_same<T, Left>::value, Left>::type* ptr = nullptr) {
+        C result;
+        for (auto& item : m_directAccess) {
+            result.insert(result.end(), item.first);
+        }
+        return result;
+    }
+
+    template <typename T, typename C = std::vector<T>>
+    C keysAs(typename std::enable_if<std::is_same<T, Right>::value, Right>::type* ptr = nullptr) {
+        C result;
+        // don't change for 'm_reverseAccess' and 'item.first'
+        // we need to preserve the order
+        for (auto& item : m_directAccess) {
+            result.insert(result.end(), item.second);
+        }
+        return result;
     }
 
 private:
