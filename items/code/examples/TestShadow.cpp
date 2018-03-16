@@ -1,21 +1,27 @@
-//void testShadow() {
 
-//    std::cout << __PRETTY_FUNCTION__ << std::endl;
+#include <iostream>
+#include "Shadow.hpp"
 
-//    struct Currency { int i; };
+void testShadow() {
 
-//    Shadow<std::string, int, Currency> price;
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
 
-//    price = "10";
-//    price = 11;
-//    price = Currency{12};
+    struct Currency { int i; };
 
-//    std::cout << static_cast<std::string>(price) << std::endl;
-//    std::cout << static_cast<int>(price) << std::endl;
-//    std::cout << static_cast<Currency>(price).i << std::endl;
-//}
+    Shadow<std::string, int, Currency> price;
+
+    price = "10";
+    price = 11;
+    price = Currency{12};
+
+    std::cout << static_cast<std::string>(price) << std::endl;
+    std::cout << static_cast<int>(price) << std::endl;
+    std::cout << static_cast<Currency>(price).i << std::endl;
+}
 
 
 int main() {
+
+    testShadow();
     return 0;
 }
