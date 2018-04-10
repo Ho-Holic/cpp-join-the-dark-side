@@ -195,6 +195,7 @@ build-*
 *.app
 
 # CMake files
+CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
