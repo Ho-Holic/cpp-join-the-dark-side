@@ -33,8 +33,3 @@ void testMirrorMap()
     printTest("Extract keys: Enum", compareCollections<std::vector<Color>>(map.keysAs<Color>(), { Color::RED, Color::GREEN, Color::BLUE }));
     printTest("Extract keys: String", compareCollections<std::vector<std::string>>(map.keysAs<std::string>(), { "color_red", "color_green", "color_blue" }));
 }
-
-int main() {
-    testMirrorMap();
-    return 0;
-}

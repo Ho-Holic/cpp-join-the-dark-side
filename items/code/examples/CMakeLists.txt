@@ -6,14 +6,32 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("examples")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_executable(${PROJECT_NAME} "main.cpp")
+set(test_headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestShadow.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestRandom.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestPreviousValue.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestMirrorMap.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestIdentifierGenerator.hpp
 
-add_executable("enum_flattener" "EnumFlattener.hpp" "TestEnumFlattener.cpp")
-add_executable("shadow" "Shadow.hpp" "TestShadow.cpp")
-add_executable("previous_value" "PreviousValue.hpp" "TestPreviousValue.cpp")
-add_executable("mirror_map" "MirrorMap.hpp" "TestMirrorMap.cpp")
-add_executable("dimension_map" "DimensionMap.hpp" "TestDimensionMap.cpp")
-add_executable("cycle_value" "CycleValue.hpp" "TestCycleValue.cpp")
-#add_executable("??" "??.hpp" "Test.cpp")
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestEnumFlattener.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestDimensionMap.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/TestCycleValue.hpp
+)
+
+set(core_headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Shadow.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Random.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/Protest.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/PreviousValue.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/MirrorMap.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/IdentifierGenerator.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/EnumFlattener.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/DimensionMap.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/CycleValue.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/CommonConcepts.hpp
+)
+
+add_executable(${PROJECT_NAME} "main.cpp" ${test_headers} ${core_headers})
+add_executable("Test${PROJECT_NAME}" "test_main.cpp" ${test_headers} ${core_headers})

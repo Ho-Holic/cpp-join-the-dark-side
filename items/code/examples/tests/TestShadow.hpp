@@ -18,10 +18,3 @@ void testShadow() {
     std::cout << static_cast<int>(price) << std::endl;
     std::cout << static_cast<Currency>(price).i << std::endl;
 }
-
-
-int main() {
-
-    testShadow();
-    return 0;
-}

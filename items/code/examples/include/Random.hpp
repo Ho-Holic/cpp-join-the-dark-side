@@ -6,6 +6,7 @@
 #include <iterator>
 #include <cmath>
 #include <cassert>
+#include <initializer_list>
 
 
 class Random
@@ -14,28 +15,46 @@ public:
     template <typename T> static T uniform();
     template <typename T> static T uniform(T to);
     template <typename T> static T uniform(T from, T to);
-
     template <typename T> static T uniformf(T from, T to);
-
-    template <typename C> static typename C::value_type uniformFrom(const C& collection);
-
-    template <typename T> static T probability();
     template <typename T> static T probabilityf();
+    template <typename T> static T probability();
+
+    static bool yesNo();
+
+    template <typename T>
+    static T normalf(T mean, T stddev);
+
+    template <typename C>
+    static typename C::value_type uniformFrom(const C& collection);
 
     template <class RandomAccessIterator>
     static void shuffle(RandomAccessIterator first, RandomAccessIterator last);
+
+    template <typename Result, typename... Args>
+    static Result uniformCall(std::initializer_list<Result(Args...)> functions, Args&&... args)
+    {
+        auto index = uniform<size_t>(functions.size() - 1);
+        return functions[index](std::forward(args)...);
+    }
+
 private:
-    std::random_device& randomDevice();
-
+    static std::random_device& randomDevice();
 };
-
 
 // implementation
 
-std::random_device& Random::randomDevice()
+
+template <typename T>
+T Random::normalf(T mean, T stddev)
 {
-    static std::random_device s_device;
-    return s_device;
+    static_assert(std::is_floating_point<T>::value, "Floating point required.");
+    std::normal_distribution<T> dis { mean, stddev };
+    return dis(randomDevice());
+}
+
+inline bool Random::yesNo()
+{
+    return static_cast<bool>(Random::uniform<int>(0, 1));
 }
 
 template <typename T>
@@ -83,7 +102,8 @@ T Random::uniform(T from, T to)
     return dis(randomDevice());
 }
 
-template <typename T> T Random::uniformf(T from, T to)
+template <typename T>
+T Random::uniformf(T from, T to)
 {
     static_assert(std::is_floating_point<T>::value, "Floating point required.");
 
@@ -115,16 +135,22 @@ typename C::value_type Random::uniformFrom(const C& collection)
     // auto offset = uniform(std::size(collection) - 1);
     //
 
-    assert(!collection.empty());
+    Z_ASSERT(!collection.empty());
 
     auto offset = uniform(collection.size() - 1);
 
     auto it = collection.begin();
     std::advance(it, static_cast<long>(offset));
 
-    assert(it != collection.end());
+    Z_ASSERT(it != collection.end());
 
     return *it;
+}
+
+inline std::random_device& Random::randomDevice()
+{
+    static std::random_device s_device;
+    return s_device;
 }
 
 #endif // RANDOM_HPP

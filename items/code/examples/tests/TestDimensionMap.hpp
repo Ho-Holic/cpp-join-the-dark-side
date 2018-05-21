@@ -19,7 +19,7 @@ struct Point {
 
 
 
-int main() {
+void testDimensionMap() {
 
     auto data = makeDimensionMap<std::string, int, Point>({
       {"cat", 42, {42, 12}},
@@ -64,6 +64,4 @@ int main() {
         std::cout << "Point: " <<  p.x << "," << p.y << std::endl;
     }
 
-
-    return 0;
 }

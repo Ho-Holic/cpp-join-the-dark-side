@@ -22,7 +22,7 @@ void testFlattenWithBoolean() {
     }
 }
 
-void testEnumFlattener()
+void testEnumDispatch()
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
 
@@ -57,10 +57,4 @@ void testEnumFlattener()
     case flattenEnums(Color::BLUE, Size::MEDIUM, Shape::ROUND): print("bm()"); break;
     case flattenEnums(Color::BLUE, Size::LARGE, Shape::ROUND): print("bl()"); break;
     }
-}
-
-int main() {
-    testFlattenWithBoolean();
-    testEnumFlattener();
-    return 0;
 }

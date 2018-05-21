@@ -44,8 +44,3 @@ void testCycleValue()
         printTest("Test Dec 5 (transition)", compareEqual(layer.value(), 3));
     }
 }
-
-int main() {
-    testCycleValue();
-    return 0;
-}
