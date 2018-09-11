@@ -31,4 +31,10 @@ enum class Turn2 {
     CounterClockwise,
 };
 
+enum class Motion2
+{
+    Fixed,
+    Rotating,
+};
+
 #endif // COMMONCONCEPTS_HPP
