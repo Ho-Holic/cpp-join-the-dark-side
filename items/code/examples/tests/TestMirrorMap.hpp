@@ -12,6 +12,8 @@ void testMirrorMap()
         BLUE
     };
 
+
+
     auto map = makeMirrorMap<Color, std::string>({
                                                      { Color::RED, "color_red" },
                                                      { Color::GREEN, "color_green" },
@@ -32,4 +34,15 @@ void testMirrorMap()
 
     printTest("Extract keys: Enum", compareCollections<std::vector<Color>>(map.keysAs<Color>(), { Color::RED, Color::GREEN, Color::BLUE }));
     printTest("Extract keys: String", compareCollections<std::vector<std::string>>(map.keysAs<std::string>(), { "color_red", "color_green", "color_blue" }));
+
+
+    auto map2 = makeMirrorMap<Color, NotComparable<int>>({
+        { Color::RED, NotComparable<int>{42} },
+        { Color::GREEN, NotComparable<int>{300} },
+        { Color::BLUE, NotComparable<int>{123} },
+    });
+
+    printTest("Not comparable: 42", compareEqual(map2(Color::RED).data, 42));
+    printTest("Not comparable: 300", compareEqual(map2(Color::GREEN).data, 300));
+    printTest("Not comparable: 123", compareEqual(map2(Color::BLUE).data, 123));
 }

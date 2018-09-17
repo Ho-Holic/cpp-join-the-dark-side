@@ -10,7 +10,7 @@
 
 int main()
 {
-    testIdentifierGenerator();
-
+    //testIdentifierGenerator();
+    testMirrorMap();
     return 0;
 }

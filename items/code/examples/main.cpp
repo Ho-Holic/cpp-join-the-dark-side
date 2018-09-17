@@ -122,7 +122,7 @@ TreeGenItem<T> operator-(const T& value)
 //      - node3,
 //      - node4;
 
-root += node1, --subnode1, --subnode2, -node2, -node3, -node4;
+// root += node1, --subnode1, --subnode2, -node2, -node3, -node4;
 
 int main() {
 

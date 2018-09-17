@@ -4,6 +4,12 @@
 #include <iostream>
 #include <iomanip>
 
+template <typename T>
+struct NotComparable
+{
+    T data;
+};
+
 template <typename T >
 inline bool compareEqual(const T& t1, const T& t2) {
     return t1 == t2;
