@@ -7,6 +7,13 @@
 // Will be a template class later
 //
 
+// void cycleUpNoWrap(); // Add no wrap mode
+// void cycleDownNoWrap(); // Add no wrap mode
+// CycleValue<int, NoWrap>
+// 
+// auto newIndex = clamp((i - 1), 0, limit); 
+//
+
 template <typename T>
 class CycleValue {
 public:
@@ -14,7 +21,7 @@ public:
     void up();
     void down();
     void cycleUp(const T& offset);
-    void cycleDown(const T& offset);
+    void cycleDown(const T& offset);    
     T value() const;
 public:
     operator T() const;
