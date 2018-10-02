@@ -11,6 +11,7 @@
 int main()
 {
     //testIdentifierGenerator();
-    testMirrorMap();
+    //testMirrorMap();
+    testRandom();
     return 0;
 }
