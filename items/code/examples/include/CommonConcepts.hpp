@@ -20,6 +20,15 @@ enum class Side4
     Bottom,
 };
 
+enum class Side5
+{
+    None,
+    Left,
+    Right,
+    Top,
+    Bottom,
+};
+
 enum class MoveDirection2
 {
     Normal,
