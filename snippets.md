@@ -32,3 +32,17 @@ int main()
     return 0;
 }
 ```
+
+# Has member variable
+
+```cpp
+template <typename T, typename = void>
+struct has_fx_start_scene : std::false_type
+{
+};
+
+template <typename T>
+struct has_fx_start_scene<T, decltype((void)T::animation::start, void())> : std::true_type
+{
+};
+```
